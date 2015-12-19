@@ -137,6 +137,20 @@ void get_shared_key(Shared_Keys *shared_keys, uint8_t *shared_key, const uint8_t
                 memcpy(shared_key, shared_keys->keys[index].shared_key, crypto_box_BEFORENMBYTES);
                 ++shared_keys->keys[index].times_requested;
                 shared_keys->keys[index].time_last_requested = unix_time();
+    
+		printf("Shared key: ");
+        for (qq = 0; qq < crypto_box_BEFORENMBYTES; qq++)
+			printf("%02x", shared_key[qq]);
+		printf("\n");
+		printf("Secret key: ");
+        for (qq = 0; qq < crypto_box_BEFORENMBYTES; qq++)
+			printf("%02x", secret_key[qq]);
+		printf("\n");
+		printf("Public key: ");
+        for (qq = 0; qq < crypto_box_BEFORENMBYTES; qq++)
+			printf("%02x", public_key[qq]);
+		printf("\n");
+		printf("\n");
                 return;
             }
 
@@ -170,6 +184,7 @@ void get_shared_key(Shared_Keys *shared_keys, uint8_t *shared_key, const uint8_t
 		printf("Public key: ");
         for (qq = 0; qq < crypto_box_BEFORENMBYTES; qq++)
 			printf("%02x", public_key[qq]);
+		printf("\n");
 		printf("\n");
 
     if (num != (uint32_t)~0) {
@@ -1093,6 +1108,8 @@ static int sendnodes_ipv6(const DHT *dht, IP_Port ip_port, const uint8_t *public
     Node_format nodes_list[MAX_SENT_NODES];
     uint32_t num_nodes = get_close_nodes(dht, client_id, nodes_list, 0, LAN_ip(ip_port.ip) == 0, 1);
 
+	printf("sendnodes start\n");
+
     if (num_nodes == 0)
         return 0;
 
@@ -1102,6 +1119,8 @@ static int sendnodes_ipv6(const DHT *dht, IP_Port ip_port, const uint8_t *public
     new_nonce(nonce);
 
     int nodes_length = pack_nodes(plain + 1, Node_format_size * MAX_SENT_NODES, nodes_list, num_nodes);
+
+	printf("sendnodes length\n");
 
     if (nodes_length <= 0)
         return -1;
@@ -1114,6 +1133,8 @@ static int sendnodes_ipv6(const DHT *dht, IP_Port ip_port, const uint8_t *public
                                       1 + nodes_length + length,
                                       encrypt );
 
+	printf("sendnodes encrypt\n");
+
     if (len != 1 + nodes_length + length + crypto_box_MACBYTES)
         return -1;
 
@@ -1121,6 +1142,8 @@ static int sendnodes_ipv6(const DHT *dht, IP_Port ip_port, const uint8_t *public
     memcpy(data + 1, dht->self_public_key, crypto_box_PUBLICKEYBYTES);
     memcpy(data + 1 + crypto_box_PUBLICKEYBYTES, nonce, crypto_box_NONCEBYTES);
     memcpy(data + 1 + crypto_box_PUBLICKEYBYTES + crypto_box_NONCEBYTES, encrypt, len);
+
+	printf("sendnodes send\n");
 
     return sendpacket(dht->net, ip_port, data, 1 + crypto_box_PUBLICKEYBYTES + crypto_box_NONCEBYTES + len);
 }
@@ -1149,6 +1172,8 @@ static int handle_getnodes(void *object, IP_Port source, const uint8_t *packet, 
 
     if (len != crypto_box_PUBLICKEYBYTES + sizeof(uint64_t))
         return 1;
+
+	printf("Parsed getnodes\n");
 
     sendnodes_ipv6(dht, source, packet + 1, plain, plain + crypto_box_PUBLICKEYBYTES, sizeof(uint64_t), shared_key);
 

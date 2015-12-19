@@ -84,8 +84,25 @@ void encrypt_precompute(const uint8_t *public_key, const uint8_t *secret_key, ui
 int encrypt_data_symmetric(const uint8_t *secret_key, const uint8_t *nonce, const uint8_t *plain, uint32_t length,
                            uint8_t *encrypted)
 {
+	int qq;
     if (length == 0)
         return -1;
+        
+		printf("Encrypt: ");
+		printf("\n");
+		printf("secret_key: ");
+        for (qq = 0; qq < 32; qq++)
+			printf("%02x ", secret_key[qq]);
+		printf("\n");
+		printf("nonce: ");
+        for (qq = 0; qq < 24; qq++)
+			printf("%02x ", nonce[qq]);
+		printf("\n");
+		printf("plain: ");
+        for (qq = 0; qq < length; qq++)
+			printf("%02x ", plain[qq]);
+		printf("\n");
+		printf("\n");
 
     uint8_t temp_plain[length + crypto_box_ZEROBYTES];
     uint8_t temp_encrypted[length + crypto_box_MACBYTES + crypto_box_BOXZEROBYTES];
@@ -95,6 +112,13 @@ int encrypt_data_symmetric(const uint8_t *secret_key, const uint8_t *nonce, cons
 
     if (crypto_box_afternm(temp_encrypted, temp_plain, length + crypto_box_ZEROBYTES, nonce, secret_key) != 0)
         return -1;
+        
+		printf("encrypted: ");
+        for (qq = 0; qq < length + crypto_box_MACBYTES; qq++)
+			printf("%02x ", encrypted[qq]);
+		printf("\n");
+		printf("OKOK\n");
+		printf("\n");
 
     /* Unpad the encrypted message. */
     memcpy(encrypted, temp_encrypted + crypto_box_BOXZEROBYTES, length + crypto_box_MACBYTES);
@@ -109,13 +133,19 @@ int decrypt_data_symmetric(const uint8_t *secret_key, const uint8_t *nonce, cons
         return -1;
         
 		printf("Decrypt: ");
-		printf("secret_key key: ");
-        for (qq = 0; qq < crypto_box_BEFORENMBYTES; qq++)
+		printf("\n");
+		printf("secret_key: ");
+        for (qq = 0; qq < 32; qq++)
 			printf("%02x ", secret_key[qq]);
 		printf("\n");
-		printf("nonce key: ");
+		printf("nonce: ");
         for (qq = 0; qq < 24; qq++)
 			printf("%02x ", nonce[qq]);
+		printf("\n");
+		printf("encrypted: ");
+        for (qq = 0; qq < length; qq++)
+			printf("%02x ", encrypted[qq]);
+		printf("\n");
 		printf("\n");
 
     uint8_t temp_plain[length + crypto_box_ZEROBYTES];
@@ -126,9 +156,12 @@ int decrypt_data_symmetric(const uint8_t *secret_key, const uint8_t *nonce, cons
 
     if (crypto_box_open_afternm(temp_plain, temp_encrypted, length + crypto_box_BOXZEROBYTES, nonce, secret_key) != 0)
         return -1;
-		printf("plain key: ");
-        for (qq = 0; qq < 24; qq++)
+        
+		printf("plain: ");
+        for (qq = 0; qq < length - crypto_box_MACBYTES; qq++)
 			printf("%02x ", plain[qq]);
+		printf("\n");
+		printf("OKOK\n");
 		printf("\n");
 
     memcpy(plain, temp_plain + crypto_box_ZEROBYTES, length - crypto_box_MACBYTES);
