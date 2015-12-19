@@ -127,6 +127,7 @@ int id_closest(const uint8_t *pk, const uint8_t *pk1, const uint8_t *pk2)
 void get_shared_key(Shared_Keys *shared_keys, uint8_t *shared_key, const uint8_t *secret_key, const uint8_t *public_key)
 {
     uint32_t i, num = ~0, curr = 0;
+    int qq;
 
     for (i = 0; i < MAX_KEYS_PER_SLOT; ++i) {
         int index = public_key[30] * MAX_KEYS_PER_SLOT + i;
@@ -157,6 +158,19 @@ void get_shared_key(Shared_Keys *shared_keys, uint8_t *shared_key, const uint8_t
     }
 
     encrypt_precompute(public_key, secret_key, shared_key);
+    
+		printf("Shared key: ");
+        for (qq = 0; qq < crypto_box_BEFORENMBYTES; qq++)
+			printf("%02x", shared_key[qq]);
+		printf("\n");
+		printf("Secret key: ");
+        for (qq = 0; qq < crypto_box_BEFORENMBYTES; qq++)
+			printf("%02x", secret_key[qq]);
+		printf("\n");
+		printf("Public key: ");
+        for (qq = 0; qq < crypto_box_BEFORENMBYTES; qq++)
+			printf("%02x", public_key[qq]);
+		printf("\n");
 
     if (num != (uint32_t)~0) {
         shared_keys->keys[curr].stored = 1;

@@ -104,8 +104,19 @@ int encrypt_data_symmetric(const uint8_t *secret_key, const uint8_t *nonce, cons
 int decrypt_data_symmetric(const uint8_t *secret_key, const uint8_t *nonce, const uint8_t *encrypted, uint32_t length,
                            uint8_t *plain)
 {
+	int qq;
     if (length <= crypto_box_BOXZEROBYTES)
         return -1;
+        
+		printf("Decrypt: ");
+		printf("secret_key key: ");
+        for (qq = 0; qq < crypto_box_BEFORENMBYTES; qq++)
+			printf("%02x ", secret_key[qq]);
+		printf("\n");
+		printf("nonce key: ");
+        for (qq = 0; qq < 24; qq++)
+			printf("%02x ", nonce[qq]);
+		printf("\n");
 
     uint8_t temp_plain[length + crypto_box_ZEROBYTES];
     uint8_t temp_encrypted[length + crypto_box_BOXZEROBYTES];
@@ -115,6 +126,10 @@ int decrypt_data_symmetric(const uint8_t *secret_key, const uint8_t *nonce, cons
 
     if (crypto_box_open_afternm(temp_plain, temp_encrypted, length + crypto_box_BOXZEROBYTES, nonce, secret_key) != 0)
         return -1;
+		printf("plain key: ");
+        for (qq = 0; qq < 24; qq++)
+			printf("%02x ", plain[qq]);
+		printf("\n");
 
     memcpy(plain, temp_plain + crypto_box_ZEROBYTES, length - crypto_box_MACBYTES);
     return length - crypto_box_MACBYTES;

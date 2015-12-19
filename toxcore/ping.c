@@ -63,6 +63,7 @@ int send_ping_request(PING *ping, IP_Port ipp, const uint8_t *public_key)
     uint8_t   pk[DHT_PING_SIZE];
     int       rc;
     uint64_t  ping_id;
+    int qq;
 
     if (id_equal(public_key, ping->dht->self_public_key))
         return 1;
@@ -97,6 +98,11 @@ int send_ping_request(PING *ping, IP_Port ipp, const uint8_t *public_key)
     if (rc != PING_PLAIN_SIZE + crypto_box_MACBYTES)
         return 1;
 
+        printf("Ping request: %d\n", sizeof(pk));
+		printf("Packet: ");
+        for (qq = 0; qq < sizeof(pk); qq++)
+			printf("%02x ", pk[qq]);
+		printf("\n");
     return sendpacket(ping->dht->net, ipp, pk, sizeof(pk));
 }
 
@@ -105,6 +111,7 @@ static int send_ping_response(PING *ping, IP_Port ipp, const uint8_t *public_key
 {
     uint8_t   pk[DHT_PING_SIZE];
     int       rc;
+    int qq;
 
     if (id_equal(public_key, ping->dht->self_public_key))
         return 1;
@@ -126,6 +133,11 @@ static int send_ping_response(PING *ping, IP_Port ipp, const uint8_t *public_key
     if (rc != PING_PLAIN_SIZE + crypto_box_MACBYTES)
         return 1;
 
+        printf("Ping response: %d\n", sizeof(pk));
+		printf("Packet: ");
+        for (qq = 0; qq < sizeof(pk); qq++)
+			printf("%02x ", pk[qq]);
+		printf("\n");
     return sendpacket(ping->dht->net, ipp, pk, sizeof(pk));
 }
 
@@ -133,6 +145,7 @@ static int handle_ping_request(void *_dht, IP_Port source, const uint8_t *packet
 {
     DHT       *dht = _dht;
     int        rc;
+    int qq;
 
     if (length != DHT_PING_SIZE)
         return 1;
@@ -142,14 +155,35 @@ static int handle_ping_request(void *_dht, IP_Port source, const uint8_t *packet
     if (id_equal(packet + 1, ping->dht->self_public_key))
         return 1;
 
+        printf("Ping request handled: %d\n", length);
+		printf("Packet: ");
+        for (qq = 0; qq < length; qq++)
+			printf("%02x ", packet[qq]);
+		printf("\n");
+		
     uint8_t shared_key[crypto_box_BEFORENMBYTES];
 
     uint8_t ping_plain[PING_PLAIN_SIZE];
     // Decrypt ping_id
     DHT_get_shared_key_recv(dht, shared_key, packet + 1);
+
+		printf("Shared key: ");
+        for (qq = 0; qq < crypto_box_BEFORENMBYTES; qq++)
+			printf("%02x ", shared_key[qq]);
+		printf("\n");
+	uint8_t encr[1024];
+    rc = encrypt_data_symmetric(shared_key,
+                                packet + 1 + crypto_box_PUBLICKEYBYTES,
+                                packet + 1 + crypto_box_PUBLICKEYBYTES + crypto_box_NONCEBYTES, sizeof(ping_plain),
+                                encr );
+		printf("ping plain: ");
+        for (qq = 0; qq < sizeof(ping_plain) + crypto_box_MACBYTES; qq++)
+			printf("%02x ", encr[qq]);
+		printf("\n");
     rc = decrypt_data_symmetric(shared_key,
                                 packet + 1 + crypto_box_PUBLICKEYBYTES,
                                 packet + 1 + crypto_box_PUBLICKEYBYTES + crypto_box_NONCEBYTES,
+                                //encr,
                                 PING_PLAIN_SIZE + crypto_box_MACBYTES,
                                 ping_plain );
 
