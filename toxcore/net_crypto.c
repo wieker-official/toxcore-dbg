@@ -198,6 +198,8 @@ static int udp_handle_cookie_request(void *object, IP_Port source, const uint8_t
     uint8_t shared_key[crypto_box_BEFORENMBYTES];
     uint8_t dht_public_key[crypto_box_PUBLICKEYBYTES];
 
+printf("Handled\n");
+
     if (handle_cookie_request(c, request_plain, shared_key, dht_public_key, packet, length) != 0)
         return 1;
 

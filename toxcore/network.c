@@ -426,10 +426,14 @@ void networking_poll(Networking_Core *net)
     while (receivepacket(net->sock, &ip_port, data, &length) != -1) {
         if (length < 1) continue;
 
+printf("pre %d\n", (int) data[0]);
+
         if (!(net->packethandlers[data[0]].function)) {
             LOGGER_WARNING("[%02u] -- Packet has no handler", data[0]);
             continue;
         }
+        
+printf("post %d\n", (int) data[0]);
 
         net->packethandlers[data[0]].function(net->packethandlers[data[0]].object, ip_port, data, length);
     }
